@@ -29,46 +29,45 @@ export default function DashboardPage() {
             <CategoryCard
               title="Depósitos"
               accentColor="#10b981"
-              usdValue="XXX"
-              usdPrevious="250"
-              brlValue="XXX"
-              brlPrevious="1.250"
+              usdValue="103.895,90"
+              usdPrevious="98.420,50"
+              brlValue="545.432,00"
+              brlPrevious="516.806,00"
               view={view}
             />
 
             <CategoryCard
               title="PNL"
               accentColor="#ff6b7a"
-              usdValue="XXX"
-              usdPrevious="180"
-              brlValue="XXX"
-              brlPrevious="900"
+              usdValue="87.240,75"
+              usdPrevious="82.150,30"
+              brlValue="458.053,94"
+              brlPrevious="431.389,58"
               view={view}
             />
 
             <CategoryCard
               title="Infoprodutos"
               accentColor="#2563eb"
-              usdValue="XXX"
-              usdPrevious="320"
-              brlValue="XXX"
-              brlPrevious="1.600"
+              usdValue="64.580,40"
+              usdPrevious="59.320,80"
+              brlValue="339.072,10"
+              brlPrevious="311.483,20"
               view={view}
             />
 
             <CategoryCard
               title="Highticket"
               accentColor="#d4af37"
-              usdValue="XXX"
-              usdPrevious="500"
-              brlValue="XXX"
-              brlPrevious="2.500"
+              usdValue="48.920,25"
+              usdPrevious="45.680,00"
+              brlValue="256.830,31"
+              brlPrevious="239.868,00"
               view={view}
             />
           </div>
 
-          {/* Accumulated totals section */}
-          <AccumulatedSection usdTotal="0.00" brlTotal="0.00" />
+          <AccumulatedSection usdTotal="304.637,30" brlTotal="1.599.388,35" />
         </div>
       </div>
     </div>
