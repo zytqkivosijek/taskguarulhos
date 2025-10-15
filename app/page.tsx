@@ -5,13 +5,155 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { ViewToggle } from "@/components/view-toggle"
 import { CategoryCard } from "@/components/category-card"
 import { AccumulatedSection } from "@/components/accumulated-section"
+import { ConversionRateInput } from "@/components/conversion-rate-input"
+
+interface ApiResponse {
+  success: boolean
+  data: {
+    deposits: {
+      now: string
+      before: string
+    }
+    registers: {
+      now: string
+      before: string
+    }
+    pnl: {
+      now: string
+      before: string
+    }
+    infoproducts: {
+      now: string
+      before: string
+    }
+    highticket: {
+      now: string
+      before: string
+    }
+  }
+}
+
+interface CurrencyApiResponse {
+  date: string
+  usd: {
+    brl: number
+  }
+}
+
+/**
+ * Formats a number to Brazilian currency format with thousand separators and 2 decimals
+ */
+function formatCurrency(value: number): string {
+  return value.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+}
 
 /**
  * Main dashboard page displaying financial metrics across multiple categories
  * Supports daily/monthly views and dark/light themes
+ * Fetches real-time data from API and applies currency conversion
  */
 export default function DashboardPage() {
   const [view, setView] = React.useState<"daily" | "monthly">("monthly")
+  const [conversionRate, setConversionRate] = React.useState(5.45)
+  const [apiData, setApiData] = React.useState<ApiResponse["data"] | null>(null)
+  const [isLoading, setIsLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    const fetchConversionRate = async () => {
+      try {
+        const response = await fetch(
+          "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json",
+        )
+        const result: CurrencyApiResponse = await response.json()
+
+        if (result.usd?.brl) {
+          setConversionRate(result.usd.brl)
+        }
+      } catch (error) {
+        console.error("[v0] Error fetching conversion rate:", error)
+        // Keep default value of 5.45 if fetch fails
+      }
+    }
+
+    fetchConversionRate()
+  }, [])
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        const timeParam = view === "daily" ? "day" : "month"
+        const response = await fetch(`https://n8n.broker10.com/webhook/all-info?time=${timeParam}`)
+        const result: ApiResponse = await response.json()
+
+        if (result.success) {
+          setApiData(result.data)
+        }
+      } catch (error) {
+        console.error("[v0] Error fetching data:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [view])
+
+  const calculateValues = () => {
+    if (!apiData) {
+      return {
+        deposits: { usd: 0, usdPrev: 0, brl: 0, brlPrev: 0 },
+        pnl: { usd: 0, usdPrev: 0, brl: 0, brlPrev: 0 },
+        infoproducts: { usd: 0, usdPrev: 0, brl: 0, brlPrev: 0 },
+        highticket: { usd: 0, usdPrev: 0, brl: 0, brlPrev: 0 },
+        totals: { usd: 0, brl: 0 },
+      }
+    }
+
+    // Deposits and PNL are in USD, convert to BRL
+    const depositsUsd = Number.parseFloat(apiData.deposits.now)
+    const depositsUsdPrev = Number.parseFloat(apiData.deposits.before)
+    const depositsBrl = depositsUsd * conversionRate
+    const depositsBrlPrev = depositsUsdPrev * conversionRate
+
+    const pnlUsd = Number.parseFloat(apiData.pnl.now)
+    const pnlUsdPrev = Number.parseFloat(apiData.pnl.before)
+    const pnlBrl = pnlUsd * conversionRate
+    const pnlBrlPrev = pnlUsdPrev * conversionRate
+
+    // Infoproducts and Highticket are in BRL, convert to USD
+    const infoproductsBrl = Number.parseFloat(apiData.infoproducts.now)
+    const infoproductsBrlPrev = Number.parseFloat(apiData.infoproducts.before)
+    const infoproductsUsd = infoproductsBrl / conversionRate
+    const infoproductsUsdPrev = infoproductsBrlPrev / conversionRate
+
+    const highticketBrl = Number.parseFloat(apiData.highticket.now)
+    const highticketBrlPrev = Number.parseFloat(apiData.highticket.before)
+    const highticketUsd = highticketBrl / conversionRate
+    const highticketUsdPrev = highticketBrlPrev / conversionRate
+
+    // Calculate totals
+    const totalUsd = pnlUsd + infoproductsUsd + highticketUsd
+    const totalBrl = pnlBrl + infoproductsBrl + highticketBrl
+
+    return {
+      deposits: { usd: depositsUsd, usdPrev: depositsUsdPrev, brl: depositsBrl, brlPrev: depositsBrlPrev },
+      pnl: { usd: pnlUsd, usdPrev: pnlUsdPrev, brl: pnlBrl, brlPrev: pnlBrlPrev },
+      infoproducts: {
+        usd: infoproductsUsd,
+        usdPrev: infoproductsUsdPrev,
+        brl: infoproductsBrl,
+        brlPrev: infoproductsBrlPrev,
+      },
+      highticket: { usd: highticketUsd, usdPrev: highticketUsdPrev, brl: highticketBrl, brlPrev: highticketBrlPrev },
+      totals: { usd: totalUsd, brl: totalBrl },
+    }
+  }
+
+  const values = calculateValues()
 
   return (
     <div className="min-h-screen bg-background">
@@ -19,55 +161,70 @@ export default function DashboardPage() {
         {/* Header with controls */}
         <header className="flex items-center justify-between mb-8">
           <ViewToggle value={view} onChange={setView} />
-          <ThemeToggle />
+          <div className="flex items-center gap-3">
+            <ConversionRateInput value={conversionRate} onChange={setConversionRate} />
+            <ThemeToggle />
+          </div>
         </header>
 
         {/* Main content grid */}
         <div className="space-y-6">
-          {/* Category cards grid - 2x2 layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <CategoryCard
-              title="Depósitos"
-              accentColor="#10b981"
-              usdValue="103.895,90"
-              usdPrevious="98.420,50"
-              brlValue="545.432,00"
-              brlPrevious="516.806,00"
-              view={view}
-            />
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-muted-foreground">Carregando dados...</div>
+            </div>
+          ) : (
+            <>
+              {/* Category cards grid - 2x2 layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <CategoryCard
+                  title="Depósitos"
+                  accentColor="#10b981"
+                  usdValue={formatCurrency(values.deposits.usd)}
+                  usdPrevious={formatCurrency(values.deposits.usdPrev)}
+                  brlValue={formatCurrency(values.deposits.brl)}
+                  brlPrevious={formatCurrency(values.deposits.brlPrev)}
+                  view={view}
+                />
 
-            <CategoryCard
-              title="PNL"
-              accentColor="#ff6b7a"
-              usdValue="87.240,75"
-              usdPrevious="82.150,30"
-              brlValue="458.053,94"
-              brlPrevious="431.389,58"
-              view={view}
-            />
+                <CategoryCard
+                  title="PNL"
+                  accentColor="#ff6b7a"
+                  usdValue={formatCurrency(values.pnl.usd)}
+                  usdPrevious={formatCurrency(values.pnl.usdPrev)}
+                  brlValue={formatCurrency(values.pnl.brl)}
+                  brlPrevious={formatCurrency(values.pnl.brlPrev)}
+                  view={view}
+                />
 
-            <CategoryCard
-              title="Infoprodutos"
-              accentColor="#2563eb"
-              usdValue="64.580,40"
-              usdPrevious="59.320,80"
-              brlValue="339.072,10"
-              brlPrevious="311.483,20"
-              view={view}
-            />
+                <CategoryCard
+                  title="Infoprodutos"
+                  accentColor="#2563eb"
+                  usdValue={formatCurrency(values.infoproducts.usd)}
+                  usdPrevious={formatCurrency(values.infoproducts.usdPrev)}
+                  brlValue={formatCurrency(values.infoproducts.brl)}
+                  brlPrevious={formatCurrency(values.infoproducts.brlPrev)}
+                  view={view}
+                />
 
-            <CategoryCard
-              title="Highticket"
-              accentColor="#d4af37"
-              usdValue="48.920,25"
-              usdPrevious="45.680,00"
-              brlValue="256.830,31"
-              brlPrevious="239.868,00"
-              view={view}
-            />
-          </div>
+                <CategoryCard
+                  title="Highticket"
+                  accentColor="#d4af37"
+                  usdValue={formatCurrency(values.highticket.usd)}
+                  usdPrevious={formatCurrency(values.highticket.usdPrev)}
+                  brlValue={formatCurrency(values.highticket.brl)}
+                  brlPrevious={formatCurrency(values.highticket.brlPrev)}
+                  view={view}
+                />
+              </div>
 
-          <AccumulatedSection usdTotal="304.637,30" brlTotal="1.599.388,35" />
+              <AccumulatedSection
+                usdTotal={formatCurrency(values.totals.usd)}
+                brlTotal={formatCurrency(values.totals.brl)}
+                view={view}
+              />
+            </>
+          )}
         </div>
       </div>
     </div>

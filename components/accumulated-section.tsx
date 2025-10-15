@@ -3,18 +3,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 interface AccumulatedSectionProps {
   usdTotal: string
   brlTotal: string
+  view: "daily" | "monthly"
 }
 
 /**
- * AccumulatedSection displays the monthly accumulated totals for both currencies
+ * AccumulatedSection displays the accumulated totals for both currencies
  * Features extra-large, bold typography for prominent display of key metrics
+ * Label changes based on view: "Acumulado Diário" for daily, "Acumulado do Mês" for monthly
  */
-export function AccumulatedSection({ usdTotal, brlTotal }: AccumulatedSectionProps) {
+export function AccumulatedSection({ usdTotal, brlTotal, view }: AccumulatedSectionProps) {
   return (
     <Card className="border-border/50 shadow-sm">
       <CardHeader>
         <CardTitle className="text-lg font-bold uppercase tracking-wide text-muted-foreground">
-          Acumulado do Mês
+          {view === "daily" ? "Acumulado Diário" : "Acumulado do Mês"}
         </CardTitle>
       </CardHeader>
       <CardContent>
