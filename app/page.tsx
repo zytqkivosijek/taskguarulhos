@@ -206,7 +206,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <CategoryCard
                   title="Depósitos"
                   accentColor="#10b981"
@@ -226,7 +226,9 @@ export default function DashboardPage() {
                   brlPrevious={formatCurrency(values.pnl.brlPrev)}
                   view={view}
                 />
+              </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <CategoryCard
                   title="ADS"
                   accentColor="#f97316"
