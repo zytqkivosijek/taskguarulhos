@@ -9,6 +9,7 @@ interface CategoryCardProps {
   brlValue: string
   brlPrevious: string
   view?: "daily" | "monthly"
+  loading?: boolean
 }
 
 /**
@@ -23,6 +24,7 @@ export function CategoryCard({
   brlValue,
   brlPrevious,
   view,
+  loading = false,
 }: CategoryCardProps) {
   return (
     <Card className="border-border/50 shadow-sm">
@@ -35,8 +37,8 @@ export function CategoryCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-8">
-        <CurrencyValue currency="USD" value={usdValue} previousValue={usdPrevious} view={view} />
-        <CurrencyValue currency="BRL" value={brlValue} previousValue={brlPrevious} view={view} />
+        <CurrencyValue currency="USD" value={usdValue} previousValue={usdPrevious} view={view} loading={loading} />
+        <CurrencyValue currency="BRL" value={brlValue} previousValue={brlPrevious} view={view} loading={loading} />
       </CardContent>
     </Card>
   )

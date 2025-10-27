@@ -200,73 +200,71 @@ export default function DashboardPage() {
 
         {/* Main content grid */}
         <div className="space-y-6">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="text-muted-foreground">Carregando dados...</div>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <CategoryCard
-                  title="Depósitos"
-                  accentColor="#10b981"
-                  usdValue={formatCurrency(values.deposits.usd)}
-                  usdPrevious={formatCurrency(values.deposits.usdPrev)}
-                  brlValue={formatCurrency(values.deposits.brl)}
-                  brlPrevious={formatCurrency(values.deposits.brlPrev)}
-                  view={view}
-                />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CategoryCard
+              title="Depósitos"
+              accentColor="#10b981"
+              usdValue={formatCurrency(values.deposits.usd)}
+              usdPrevious={formatCurrency(values.deposits.usdPrev)}
+              brlValue={formatCurrency(values.deposits.brl)}
+              brlPrevious={formatCurrency(values.deposits.brlPrev)}
+              view={view}
+              loading={isLoading}
+            />
 
-                <CategoryCard
-                  title="PNL"
-                  accentColor="#ff6b7a"
-                  usdValue={formatCurrency(values.pnl.usd)}
-                  usdPrevious={formatCurrency(values.pnl.usdPrev)}
-                  brlValue={formatCurrency(values.pnl.brl)}
-                  brlPrevious={formatCurrency(values.pnl.brlPrev)}
-                  view={view}
-                />
-              </div>
+            <CategoryCard
+              title="PNL"
+              accentColor="#ff6b7a"
+              usdValue={formatCurrency(values.pnl.usd)}
+              usdPrevious={formatCurrency(values.pnl.usdPrev)}
+              brlValue={formatCurrency(values.pnl.brl)}
+              brlPrevious={formatCurrency(values.pnl.brlPrev)}
+              view={view}
+              loading={isLoading}
+            />
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <CategoryCard
-                  title="ADS"
-                  accentColor="#f97316"
-                  usdValue={formatCurrency(values.ads.usd)}
-                  usdPrevious={formatCurrency(values.ads.usdPrev)}
-                  brlValue={formatCurrency(values.ads.brl)}
-                  brlPrevious={formatCurrency(values.ads.brlPrev)}
-                  view={view}
-                />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <CategoryCard
+              title="ADS"
+              accentColor="#f97316"
+              usdValue={formatCurrency(values.ads.usd)}
+              usdPrevious={formatCurrency(values.ads.usdPrev)}
+              brlValue={formatCurrency(values.ads.brl)}
+              brlPrevious={formatCurrency(values.ads.brlPrev)}
+              view={view}
+              loading={isLoading}
+            />
 
-                <CategoryCard
-                  title="Infoprodutos"
-                  accentColor="#2563eb"
-                  usdValue={formatCurrency(values.infoproducts.usd)}
-                  usdPrevious={formatCurrency(values.infoproducts.usdPrev)}
-                  brlValue={formatCurrency(values.infoproducts.brl)}
-                  brlPrevious={formatCurrency(values.infoproducts.brlPrev)}
-                  view={view}
-                />
+            <CategoryCard
+              title="Infoprodutos"
+              accentColor="#2563eb"
+              usdValue={formatCurrency(values.infoproducts.usd)}
+              usdPrevious={formatCurrency(values.infoproducts.usdPrev)}
+              brlValue={formatCurrency(values.infoproducts.brl)}
+              brlPrevious={formatCurrency(values.infoproducts.brlPrev)}
+              view={view}
+              loading={isLoading}
+            />
 
-                <CategoryCard
-                  title="Highticket"
-                  accentColor="#d4af37"
-                  usdValue={formatCurrency(values.highticket.usd)}
-                  usdPrevious={formatCurrency(values.highticket.usdPrev)}
-                  brlValue={formatCurrency(values.highticket.brl)}
-                  brlPrevious={formatCurrency(values.highticket.brlPrev)}
-                  view={view}
-                />
-              </div>
+            <CategoryCard
+              title="Highticket"
+              accentColor="#d4af37"
+              usdValue={formatCurrency(values.highticket.usd)}
+              usdPrevious={formatCurrency(values.highticket.usdPrev)}
+              brlValue={formatCurrency(values.highticket.brl)}
+              brlPrevious={formatCurrency(values.highticket.brlPrev)}
+              view={view}
+              loading={isLoading}
+            />
+          </div>
 
-              <AccumulatedSection
-                usdTotal={formatCurrency(values.totals.usd)}
-                brlTotal={formatCurrency(values.totals.brl)}
-                view={view}
-              />
-            </>
-          )}
+          <AccumulatedSection
+            usdTotal={formatCurrency(values.totals.usd)}
+            brlTotal={formatCurrency(values.totals.brl)}
+            view={view}
+            loading={isLoading}
+          />
         </div>
       </div>
     </div>
