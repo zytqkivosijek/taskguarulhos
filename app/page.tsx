@@ -30,6 +30,10 @@ interface ApiResponse {
       now: string
       before: string
     }
+    ads: {
+      now: string
+      before: string
+    }
   }
 }
 
@@ -86,14 +90,36 @@ export default function DashboardPage() {
       setIsLoading(true)
       try {
         const timeParam = view === "daily" ? "day" : "month"
-        const response = await fetch(`https://n8n.broker10.com/webhook/all-info?time=${timeParam}`)
+
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 20000)
+
+        const response = await fetch(`https://n8n.broker10.com/webhook/all-info?time=${timeParam}`, {
+          credentials: "include",
+          signal: controller.signal,
+        })
+
+        clearTimeout(timeoutId)
         const result: ApiResponse = await response.json()
 
         if (result.success) {
           setApiData(result.data)
         }
       } catch (error) {
-        console.error("[v0] Error fetching data:", error)
+        if (error instanceof Error && error.name === "AbortError") {
+          console.error("[v0] Request timeout - setting values to zero")
+        } else {
+          console.error("[v0] Error fetching data:", error)
+        }
+
+        setApiData({
+          deposits: { now: "0", before: "0" },
+          registers: { now: "0", before: "0" },
+          pnl: { now: "0", before: "0" },
+          infoproducts: { now: "0", before: "0" },
+          highticket: { now: "0", before: "0" },
+          ads: { now: "0", before: "0" },
+        })
       } finally {
         setIsLoading(false)
       }
@@ -109,6 +135,7 @@ export default function DashboardPage() {
         pnl: { usd: 0, usdPrev: 0, brl: 0, brlPrev: 0 },
         infoproducts: { usd: 0, usdPrev: 0, brl: 0, brlPrev: 0 },
         highticket: { usd: 0, usdPrev: 0, brl: 0, brlPrev: 0 },
+        ads: { usd: 0, usdPrev: 0, brl: 0, brlPrev: 0 },
         totals: { usd: 0, brl: 0 },
       }
     }
@@ -135,9 +162,14 @@ export default function DashboardPage() {
     const highticketUsd = highticketBrl / conversionRate
     const highticketUsdPrev = highticketBrlPrev / conversionRate
 
+    const adsUsd = Number.parseFloat(apiData.ads.now)
+    const adsUsdPrev = Number.parseFloat(apiData.ads.before)
+    const adsBrl = adsUsd * conversionRate
+    const adsBrlPrev = adsUsdPrev * conversionRate
+
     // Calculate totals
-    const totalUsd = pnlUsd + infoproductsUsd + highticketUsd
-    const totalBrl = pnlBrl + infoproductsBrl + highticketBrl
+    const totalUsd = pnlUsd + infoproductsUsd + highticketUsd + adsUsd
+    const totalBrl = pnlBrl + infoproductsBrl + highticketBrl + adsBrl
 
     return {
       deposits: { usd: depositsUsd, usdPrev: depositsUsdPrev, brl: depositsBrl, brlPrev: depositsBrlPrev },
@@ -149,6 +181,7 @@ export default function DashboardPage() {
         brlPrev: infoproductsBrlPrev,
       },
       highticket: { usd: highticketUsd, usdPrev: highticketUsdPrev, brl: highticketBrl, brlPrev: highticketBrlPrev },
+      ads: { usd: adsUsd, usdPrev: adsUsdPrev, brl: adsBrl, brlPrev: adsBrlPrev },
       totals: { usd: totalUsd, brl: totalBrl },
     }
   }
@@ -175,8 +208,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <>
-              {/* Category cards grid - 2x2 layout */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <CategoryCard
                   title="Depósitos"
                   accentColor="#10b981"
@@ -194,6 +226,16 @@ export default function DashboardPage() {
                   usdPrevious={formatCurrency(values.pnl.usdPrev)}
                   brlValue={formatCurrency(values.pnl.brl)}
                   brlPrevious={formatCurrency(values.pnl.brlPrev)}
+                  view={view}
+                />
+
+                <CategoryCard
+                  title="ADS"
+                  accentColor="#f97316"
+                  usdValue={formatCurrency(values.ads.usd)}
+                  usdPrevious={formatCurrency(values.ads.usdPrev)}
+                  brlValue={formatCurrency(values.ads.brl)}
+                  brlPrevious={formatCurrency(values.ads.brlPrev)}
                   view={view}
                 />
 
