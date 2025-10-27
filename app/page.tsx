@@ -91,26 +91,17 @@ export default function DashboardPage() {
       try {
         const timeParam = view === "daily" ? "day" : "month"
 
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 20000)
+        const response = await fetch(`/api/financial-data?time=${timeParam}`)
 
-        const response = await fetch(`https://n8n.broker10.com/webhook/all-info?time=${timeParam}`, {
-          credentials: "include",
-          signal: controller.signal,
-        })
-
-        clearTimeout(timeoutId)
         const result: ApiResponse = await response.json()
+
+        console.log("[v0] API Response:", result)
 
         if (result.success) {
           setApiData(result.data)
         }
       } catch (error) {
-        if (error instanceof Error && error.name === "AbortError") {
-          console.error("[v0] Request timeout - setting values to zero")
-        } else {
-          console.error("[v0] Error fetching data:", error)
-        }
+        console.error("[v0] Error fetching data:", error)
 
         setApiData({
           deposits: { now: "0", before: "0" },
@@ -140,32 +131,39 @@ export default function DashboardPage() {
       }
     }
 
+    const parseValue = (value: string | undefined): number => {
+      if (!value) return 0
+      const parsed = Number.parseFloat(value)
+      return Number.isNaN(parsed) ? 0 : parsed
+    }
+
     // Deposits and PNL are in USD, convert to BRL
-    const depositsUsd = Number.parseFloat(apiData.deposits.now)
-    const depositsUsdPrev = Number.parseFloat(apiData.deposits.before)
+    const depositsUsd = parseValue(apiData.deposits?.now)
+    const depositsUsdPrev = parseValue(apiData.deposits?.before)
     const depositsBrl = depositsUsd * conversionRate
     const depositsBrlPrev = depositsUsdPrev * conversionRate
 
-    const pnlUsd = Number.parseFloat(apiData.pnl.now)
-    const pnlUsdPrev = Number.parseFloat(apiData.pnl.before)
+    const pnlUsd = parseValue(apiData.pnl?.now)
+    const pnlUsdPrev = parseValue(apiData.pnl?.before)
     const pnlBrl = pnlUsd * conversionRate
     const pnlBrlPrev = pnlUsdPrev * conversionRate
 
     // Infoproducts and Highticket are in BRL, convert to USD
-    const infoproductsBrl = Number.parseFloat(apiData.infoproducts.now)
-    const infoproductsBrlPrev = Number.parseFloat(apiData.infoproducts.before)
+    const infoproductsBrl = parseValue(apiData.infoproducts?.now)
+    const infoproductsBrlPrev = parseValue(apiData.infoproducts?.before)
     const infoproductsUsd = infoproductsBrl / conversionRate
     const infoproductsUsdPrev = infoproductsBrlPrev / conversionRate
 
-    const highticketBrl = Number.parseFloat(apiData.highticket.now)
-    const highticketBrlPrev = Number.parseFloat(apiData.highticket.before)
+    const highticketBrl = parseValue(apiData.highticket?.now)
+    const highticketBrlPrev = parseValue(apiData.highticket?.before)
     const highticketUsd = highticketBrl / conversionRate
     const highticketUsdPrev = highticketBrlPrev / conversionRate
 
-    const adsUsd = Number.parseFloat(apiData.ads.now)
-    const adsUsdPrev = Number.parseFloat(apiData.ads.before)
-    const adsBrl = adsUsd * conversionRate
-    const adsBrlPrev = adsUsdPrev * conversionRate
+    // ADS is in BRL, convert to USD
+    const adsBrl = parseValue(apiData.ads?.now)
+    const adsBrlPrev = parseValue(apiData.ads?.before)
+    const adsUsd = adsBrl / conversionRate
+    const adsUsdPrev = adsBrlPrev / conversionRate
 
     // Calculate totals
     const totalUsd = pnlUsd + infoproductsUsd + highticketUsd + adsUsd
