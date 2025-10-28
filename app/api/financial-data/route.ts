@@ -5,6 +5,8 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const time = searchParams.get("time") || "month"
 
+    const cookieHeader = request.headers.get("cookie")
+
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 20000)
 
@@ -12,6 +14,7 @@ export async function GET(request: NextRequest) {
       signal: controller.signal,
       headers: {
         "Content-Type": "application/json",
+        ...(cookieHeader && { Cookie: cookieHeader }),
       },
     })
 
